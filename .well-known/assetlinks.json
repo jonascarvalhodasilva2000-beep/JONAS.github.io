@@ -1,1 +1,8 @@
-
+[{
+      "relation": ["delegate_permission/common.handle_all_urls"],
+      "target": {
+        "namespace": "android_app",
+        "package_name": "io.github.jonascarvalhodasilva2000_beep.twa",
+        "sha256_cert_fingerprints": ["EC:C6:A8:23:91:7A:54:B1:80:89:69:22:C4:84:77:C9:C9:DA:B2:DA:07:04:B5:F2:F2:CF:69:7F:8A:86:F0:5E"]
+      }
+    }]
