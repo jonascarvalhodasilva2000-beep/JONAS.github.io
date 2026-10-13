@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Fome de Instante</title>
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#2f7d4f">
+<link rel="icon" href="icon-192.png">
+<link rel="apple-touch-icon" href="icon-192.png">
+<style>
+:root{--bg:#f7f5ef;--sf:#fff;--tx:#23302a;--mu:#6f7d75;--ac:#2f7d4f;--ln:#e3e0d5;--help:#b3261e;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#141a17;--sf:#1f2823;--tx:#eaf1ec;--mu:#9fb0a6;--ln:#2e3a33;--ac:#5cc189}}
+:root[data-theme="dark"]{--bg:#141a17;--sf:#1f2823;--tx:#eaf1ec;--mu:#9fb0a6;--ln:#2e3a33;--ac:#5cc189}
+*{box-sizing:border-box}
+html,body{margin:0;min-height:100%}
+body{background:var(--bg);color:var(--tx);font-family:system-ui,-apple-system,Segoe UI,sans-serif}
+.w{max-width:520px;margin:0 auto;padding:0 14px 30px}
+.top{position:sticky;top:env(safe-area-inset-top,0px);background:var(--bg);padding:12px 0 8px;z-index:5}
+.br{font-size:22px;font-weight:800;color:var(--ac)}
+.br small{display:block;font-size:12px;font-weight:400;color:var(--mu)}
+input{width:100%;padding:13px 16px;border-radius:30px;border:1px solid var(--ln);background:var(--sf);color:var(--tx);font-size:16px;margin:8px 0}
+.ch{display:flex;gap:8px}
+.ch button{padding:7px 16px;border-radius:20px;border:1px solid var(--ln);background:var(--sf);color:var(--tx);font-size:14px;cursor:pointer}
+.ch button.on{background:var(--ac);color:#fff;border-color:var(--ac)}
+.g{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:10px}
+.c{background:var(--sf);border-radius:16px;overflow:hidden;border:1px solid var(--ln);cursor:pointer}
+.c svg{display:block;width:100%;height:auto}
+.c div{padding:9px 11px 12px}.c b{font-size:14px;display:block;line-height:1.25}.c small{color:var(--mu);font-size:12px}
+.v{display:none}
+.hero svg{width:100%;height:auto;border-radius:0 0 24px 24px;display:block}
+h2{margin:14px 0 4px;font-size:24px}
+h3{color:var(--ac);margin:20px 0 6px}
+li{margin:7px 0;line-height:1.5}
+.bk{background:none;border:0;color:var(--ac);font-size:16px;padding:10px 0;cursor:pointer}
+.b{display:block;width:100%;padding:16px;border:0;border-radius:12px;font-size:18px;font-weight:600;margin:8px 0;background:var(--help);color:#fff;cursor:pointer}
+.b.s{background:var(--ln);color:var(--tx)}
+.hc{background:var(--sf);border-radius:14px;padding:14px;margin:12px 0}
+.hc p{margin:4px 0 10px;font-size:14px;color:var(--mu)}
+.hc input{border-radius:10px}
+</style>
+</head>
+<body>
+<div class="w" id="home">
+  <div class="top">
+    <div class="br">Fome de Instante<small id="cnt"></small></div>
+    <input id="q" placeholder="Buscar receita... (ex.: bolo de cenoura)" autocomplete="off">
+    <div class="ch"><button class="on" data-f="">Todas</button><button data-f="s">Doces</button><button data-f="v">Salgados</button></div>
+  </div>
+  <div class="g" id="list"></div>
+  <button class="b s" id="more" style="display:none">Ver mais receitas</button>
+</div>
+<div class="w v" id="rec"></div>
+<div class="w v" id="help">
+  <h2>Você não está sozinha</h2>
+  <button class="b" data-tel="190">Ligar 190 · Polícia (emergência)</button>
+  <button class="b" data-tel="180">Ligar 180 · Central da Mulher</button>
+  <div class="hc">
+    <b>Avisar pessoa de confiança</b>
+    <p>Envia mensagem pronta com sua localização (você toca em enviar).</p>
+    <input id="cn" placeholder="Nome (ex.: minha irmã)">
+    <input id="cp" placeholder="Telefone com DDD (ex.: 24999999999)" inputmode="tel">
+    <button class="b s" id="save">Salvar contato</button>
+    <button class="b" id="sms">Enviar SMS de socorro</button>
+    <button class="b" id="wa" style="background:#1a7f43">Enviar por WhatsApp</button>
+  </div>
+  <div class="hc">
+    <b>Trocar código secreto</b>
+    <p>Para abrir esta tela, digite o código na busca de receitas. Use 4 a 8 números.</p>
+    <input id="nc" placeholder="Novo código" inputmode="numeric">
+    <button class="b s" id="setc">Salvar código</button>
+  </div>
+  <button class="b s" id="back">Voltar às receitas</button>
+</div>
+
+<script>
+var $=function(i){return document.getElementById(i)};
+function ld(k,d){try{var v=localStorage.getItem(k);return v===null?d:v}catch(e){return d}}
+function sv(k,v){try{localStorage.setItem(k,v)}catch(e){}}
+var CODE=ld("cod","9090");
+$("cn").value=ld("cn","");$("cp").value=ld("cp","");
+function nz(s){return s.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g,"")}
+function esc(s){return s.replace(/[&<>"]/g,function(c){return{"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]})}
+function hs(s){var h=0;for(var i=0;i<s.length;i++)h=(h*31+s.charCodeAt(i))|0;return Math.abs(h)}
+function pa(s){return s.split(";").map(function(x){return x.split("|")})}
+
+var IS=pa("cenoura|🥕;chocolate|🍫;morango|🍓;banana|🍌;maçã|🍎;laranja|🍊;limão|🍋;coco|🥥;abacaxi|🍍;maracujá|🟡;manga|🥭;uva|🍇;pêssego|🍑;pera|🍐;cereja|🍒;melancia|🍉;kiwi|🥝;mamão|🧡;goiaba|🍈;milho|🌽;amendoim|🥜;castanha|🌰;leite ninho|🥛;doce de leite|🍮;café|☕;canela|🍂;baunilha|🌼;cacau|🍫;abóbora|🎃;batata-doce|🍠;mandioca|🥔;aveia|🌾;mel|🍯;nozes|🌰;amora|🫐;framboesa|🍓;mirtilo|🫐;ameixa|🍑;figo|🍇;paçoca|🥜;açaí|🍇;caju|🍊;jabuticaba|🍇;tapioca|🥥;leite condensado|🥛;banana com canela|🍌;laranja com cenoura|🥕;limão com coco|🍋");
+var IV=pa("frango|🍗;carne|🥩;peixe|🐟;camarão|🦐;ovo|🥚;queijo|🧀;presunto|🥓;bacon|🥓;linguiça|🌭;batata|🥔;abóbora|🎃;cenoura|🥕;brócolis|🥦;couve-flor|🥦;espinafre|🥬;tomate|🍅;berinjela|🍆;abobrinha|🥒;milho|🌽;cogumelo|🍄;cebola|🧅;alho|🧄;pimentão|🫑;grão-de-bico|🫘;lentilha|🫘;feijão|🫘;ervilha|🫛;mandioca|🥔;atum|🐟;sardinha|🐟;bacalhau|🐟;salmão|🐟;tilápia|🐟;carne moída|🥩;costela|🍖;peru|🍗;couve|🥬;repolho|🥬;quiabo|🥬;chuchu|🥒;palmito|🌴;azeitona|🫒;requeijão|🧀;mussarela|🧀;ricota|🧀;abacate|🥑;beterraba|🥕;rúcula|🥬;inhame|🍠;lombo|🍖;picanha|🥩;calabresa|🌭;frango desfiado|🍗;legumes|🥗;vagem|🥬;cará|🍠;mandioquinha|🥔");
+
+var TS=[
+["🎂","Bolo de","1h",["{i} (sabor principal)","3 ovos","2 xícaras de farinha","1 1/2 xícara de açúcar","1/2 xícara de óleo","1 colher (sopa) de fermento"],["Bata {i}, ovos, óleo e açúcar no liquidificador.","Misture a farinha e o fermento.","Asse em forma untada a 180°C por 40 minutos."]],
+["🥧","Torta de","1h10",["{i} (recheio)","2 xícaras de farinha","100 g de manteiga","1 ovo","1/2 xícara de açúcar"],["Misture farinha, manteiga e ovo e forre a forma.","Cozinhe {i} com o açúcar até engrossar.","Recheie e asse a 180°C por 30 minutos."]],
+["🍮","Mousse de","20 min + gelar",["{i} (sabor principal)","1 lata de leite condensado","1 caixa de creme de leite","1 colher de gelatina sem sabor"],["Bata {i} com o leite condensado e o creme de leite.","Dissolva a gelatina e misture.","Leve à geladeira por 3 horas."]],
+["🍮","Pudim de","1h30",["{i} (sabor principal)","1 lata de leite condensado","2 latas de leite","3 ovos","1 xícara de açúcar (calda)"],["Faça a calda e espalhe na forma.","Bata {i} com leite, leite condensado e ovos.","Asse em banho-maria por 1 hora."]],
+["🍨","Sorvete de","15 min + congelar",["{i} (sabor principal)","1 caixa de creme de leite","1 lata de leite condensado","2 claras em neve"],["Bata {i} com o creme de leite e o leite condensado.","Misture as claras em neve.","Congele por 6 horas."]],
+["🍬","Brigadeiro de","25 min",["{i} (sabor principal)","1 lata de leite condensado","1 colher (sopa) de manteiga","Granulado"],["Leve ao fogo baixo o leite condensado, a manteiga e {i}.","Mexa até desgrudar do fundo.","Deixe esfriar, enrole e passe no granulado."]],
+["🍰","Pavê de","30 min + gelar",["{i} (recheio)","1 pacote de biscoito maisena","1 lata de leite condensado","2 caixas de creme de leite"],["Faça um creme com leite condensado e creme de leite.","Alterne camadas de biscoito, creme e {i}.","Gele por 4 horas."]],
+["🍪","Biscoito de","35 min",["{i} (sabor principal)","2 xícaras de farinha","1/2 xícara de manteiga","1/2 xícara de açúcar","1 ovo"],["Misture tudo com {i} até formar massa.","Modele os biscoitos.","Asse a 180°C por 15 minutos."]],
+["🍯","Geleia de","40 min",["{i} (sabor principal)","1 xícara de açúcar","Suco de 1 limão"],["Leve {i}, o açúcar e o limão ao fogo médio.","Mexa até ficar com ponto de geleia.","Guarde em pote esterilizado."]],
+["🥤","Suco de","5 min",["{i} (sabor principal)","1 litro de água gelada","Açúcar ou mel a gosto","Gelo"],["Bata {i} com a água no liquidificador.","Coe se quiser e adoce.","Sirva com gelo."]],
+["🧁","Muffin de","35 min",["{i} (sabor principal)","2 xícaras de farinha","2 ovos","3/4 xícara de açúcar","1/2 xícara de leite","1 colher (sopa) de fermento"],["Misture os secos e os líquidos.","Junte {i}.","Asse em forminhas a 180°C por 25 minutos."]],
+["🍰","Cheesecake de","1h + gelar",["{i} (cobertura)","200 g de biscoito triturado","100 g de manteiga","300 g de cream cheese","1 lata de leite condensado"],["Misture biscoito e manteiga e forre a forma.","Bata o cream cheese com o leite condensado e asse 30 minutos.","Cubra com {i} e gele."]]];
+var TV=[
+["🍲","Sopa de","40 min",["{i} (principal)","1 cebola","2 dentes de alho","1 batata","1 litro de água","Sal e temperos"],["Refogue a cebola e o alho.","Junte {i}, a batata e a água.","Cozinhe 25 minutos e bata ou sirva em pedaços."]],
+["🍚","Risoto de","45 min",["{i} (principal)","1 xícara de arroz arbóreo","1 cebola","1 litro de caldo","Queijo ralado"],["Refogue a cebola e o arroz.","Adicione o caldo aos poucos, mexendo.","Junte {i} e finalize com queijo."]],
+["🍳","Omelete de","15 min",["{i} (recheio)","3 ovos","Sal e pimenta","1 colher de manteiga"],["Bata os ovos com sal.","Despeje na frigideira com manteiga.","Recheie com {i}, dobre e sirva."]],
+["🥧","Torta salgada de","1h",["{i} (recheio)","2 xícaras de farinha","3 ovos","1 xícara de leite","1/2 xícara de óleo","1 colher de fermento"],["Bata a massa no liquidificador.","Refogue {i} para o recheio.","Monte em camadas e asse a 180°C por 40 minutos."]],
+["🥗","Salada de","15 min",["{i} (principal)","Folhas verdes","1 tomate","Azeite, limão e sal"],["Prepare {i}.","Misture com folhas e tomate.","Tempere com azeite, limão e sal."]],
+["🥟","Pastel de","50 min",["{i} (recheio)","1 pacote de massa de pastel","Óleo ou forno","Sal e temperos"],["Refogue {i} e deixe esfriar.","Recheie a massa e feche as bordas.","Asse ou frite até dourar."]],
+["🥞","Panqueca de","35 min",["{i} (recheio)","1 xícara de farinha","1 xícara de leite","1 ovo","Molho de tomate"],["Bata a massa e faça discos finos.","Refogue {i} para o recheio.","Enrole, cubra com molho e leve ao forno."]],
+["🍝","Macarrão com","30 min",["{i} (principal)","500 g de macarrão","3 dentes de alho","Azeite","Sal"],["Cozinhe o macarrão al dente.","Refogue o alho e {i}.","Misture e sirva quente."]],
+["🍛","Estrogonofe de","35 min",["{i} (principal)","1 cebola","2 colheres de ketchup","1 colher de mostarda","1 caixa de creme de leite"],["Refogue a cebola e {i}.","Junte ketchup e mostarda.","Desligue e misture o creme de leite."]],
+["🧆","Croquete de","50 min",["{i} (recheio)","1 xícara de farinha","1 xícara de leite","Farinha de rosca","1 ovo"],["Faça uma massa cozida com leite e farinha e junte {i}.","Modele, passe no ovo e na farinha de rosca.","Frite ou asse até dourar."]],
+["🥧","Quiche de","55 min",["{i} (recheio)","1 massa de torta","3 ovos","1 caixa de creme de leite","Queijo ralado"],["Forre a forma com a massa.","Distribua {i}.","Cubra com ovos, creme e queijo e asse 35 minutos."]],
+["🥘","Escondidinho de","1h",["{i} (recheio)","500 g de mandioca ou batata","1 cebola","Queijo","Manteiga"],["Cozinhe e amasse a mandioca.","Refogue {i} com a cebola.","Monte em camadas, cubra com queijo e gratine."]],
+["🍚","Arroz com","30 min",["{i} (principal)","2 xícaras de arroz","1 cebola","Alho","4 xícaras de água"],["Refogue cebola, alho e {i}.","Junte o arroz e a água.","Cozinhe até secar."]],
+["🍜","Caldo de","45 min",["{i} (principal)","1 cebola","1 batata","1 litro de água","Cheiro-verde"],["Cozinhe {i} com cebola e batata.","Bata no liquidificador.","Volte ao fogo e finalize com cheiro-verde."]],
+["🥘","Refogado de","20 min",["{i} (principal)","1 cebola","2 dentes de alho","Azeite","Sal e pimenta"],["Aqueça o azeite e doure cebola e alho.","Junte {i}.","Tempere e cozinhe até macio."]],
+["🍔","Hambúrguer de","25 min",["{i} (principal)","Pão de hambúrguer","1 ovo","Farinha de rosca","Alface e tomate"],["Misture {i}, o ovo e a farinha de rosca.","Modele e grelhe dos dois lados.","Monte no pão com salada."]],
+["🥧","Empada de","1h",["{i} (recheio)","2 xícaras de farinha","150 g de manteiga","1 ovo","Sal"],["Faça a massa e forre forminhas.","Refogue {i} para o recheio.","Recheie, tampe e asse a 180°C por 30 minutos."]],
+["🥣","Farofa de","20 min",["{i} (principal)","2 xícaras de farinha de mandioca","1 cebola","3 colheres de manteiga"],["Doure a cebola na manteiga.","Junte {i}.","Acrescente a farinha e mexa até torrar."]]];
+
+var A=[];
+[["s",TS,IS],["v",TV,IV]].forEach(function(p){p[1].forEach(function(t){p[2].forEach(function(g){var n=t[1]+" "+g[0];A.push({k:p[0],t:t,i:g[0],e:g[1],n:n,s:nz(n)})})})});
+$("cnt").textContent=A.length.toLocaleString("pt-BR")+" receitas para o dia a dia";
+
+function f(x,i){return x.split("{i}").join(i)}
+function pic(a,w){
+  var h=hs(a.n)%360,h2=(h+40)%360;
+  return '<svg viewBox="0 0 100 '+(w?70:100)+'" xmlns="http://www.w3.org/2000/svg"><rect width="100" height="100" fill="hsl('+h+',55%,82%)"/><circle cx="50" cy="'+(w?36:52)+'" r="'+(w?30:34)+'" fill="#fff" stroke="hsl('+h+',35%,70%)" stroke-width="1.5"/><circle cx="50" cy="'+(w?36:52)+'" r="'+(w?23:27)+'" fill="hsl('+h2+',65%,72%)"/><text x="50" y="'+(w?47:63)+'" font-size="'+(w?30:34)+'" text-anchor="middle">'+a.t[0]+'</text><text x="'+(w?76:74)+'" y="'+(w?22:30)+'" font-size="20" text-anchor="middle">'+a.e+'</text><circle cx="20" cy="'+(w?60:84)+'" r="3" fill="hsl('+h2+',60%,60%)"/><circle cx="80" cy="'+(w?58:80)+'" r="2.5" fill="hsl('+h+',60%,60%)"/><circle cx="30" cy="12" r="2" fill="hsl('+h2+',60%,60%)"/></svg>'}
+
+var flt="",qs="",cur=[],N=24;
+var day=new Date().toDateString();
+var base=A.slice().sort(function(a,b){return hs(a.n+day)-hs(b.n+day)});
+function run(){
+  var w=nz(qs).split(/\s+/).filter(Boolean);
+  cur=base.filter(function(a){return(!flt||a.k==flt)&&w.every(function(x){return a.s.indexOf(x)>=0})});
+  if(!cur.length&&qs.trim()){var q=qs.trim().slice(0,40);cur=[{k:"v",t:["🍽️","Receita caseira de","40 min",["{i} (principal)","Temperos a gosto","2 colheres de azeite ou manteiga","Sal"],["Prepare e tempere {i}.","Cozinhe em fogo médio até ficar no ponto.","Ajuste o sal e sirva."]],i:q,e:"🍽️",n:"Receita caseira de "+q,s:""}]}
+  N=24;draw();
+}
+function draw(){
+  $("list").innerHTML=cur.slice(0,N).map(function(a,k){return'<div class="c" data-k="'+k+'">'+pic(a)+'<div><b>'+esc(a.n)+'</b><small>⏱ '+a.t[2]+'</small></div></div>'}).join("");
+  document.querySelectorAll(".c").forEach(function(c){c.onclick=function(){op(cur[+c.dataset.k])}});
+  $("more").style.display=cur.length>N?"block":"none";
+}
+$("more").onclick=function(){N+=24;draw()};
+function show(id){["home","rec","help"].forEach(function(x){$(x).style.display=x==id?"block":"none"});window.scrollTo(0,0)}
+function op(a){var t=a.t,i=esc(a.i);
+  $("rec").innerHTML='<button class="bk" id="rb">← Voltar</button><div class="hero">'+pic(a,1)+'</div><h2>'+esc(a.n)+'</h2><small style="color:var(--mu)">⏱ '+t[2]+' · '+(a.k=="s"?"Doce":"Salgado")+'</small><h3>Ingredientes</h3><ul>'+t[3].map(function(x){return"<li>"+f(x,i)+"</li>"}).join("")+'</ul><h3>Modo de preparo</h3><ol>'+t[4].map(function(x){return"<li>"+f(x,i)+"</li>"}).join("")+'</ol>';
+  $("rb").onclick=function(){show("home")};show("rec")}
+$("q").oninput=function(){var v=this.value.trim();if(v===CODE){this.value="";qs="";run();show("help");return}qs=this.value;run()};
+document.querySelectorAll(".ch button").forEach(function(b){b.onclick=function(){document.querySelectorAll(".ch button").forEach(function(x){x.className=""});b.className="on";flt=b.dataset.f;run()}});
+$("back").onclick=function(){show("home")};
+
+document.querySelectorAll("[data-tel]").forEach(function(b){b.onclick=function(){location.href="tel:"+b.dataset.tel}});
+$("save").onclick=function(){sv("cn",$("cn").value);sv("cp",$("cp").value.replace(/\D/g,""));alert("Contato salvo.")};
+$("setc").onclick=function(){var v=$("nc").value.replace(/\D/g,"");if(v.length<4||v.length>8){alert("Use de 4 a 8 números.");return}sv("cod",v);CODE=v;$("nc").value="";alert("Código alterado.")};
+function msg(cb){
+  var n=$("cp").value.replace(/\D/g,"");
+  if(!n){alert("Salve primeiro o telefone de uma pessoa de confiança.");return}
+  var base="Preciso de ajuda, estou em perigo. Por favor, ligue para mim ou chame a polícia (190).";
+  function go(t){cb(n,encodeURIComponent(t))}
+  if(navigator.geolocation){navigator.geolocation.getCurrentPosition(function(p){go(base+" Minha localização: https://maps.google.com/?q="+p.coords.latitude+","+p.coords.longitude)},function(){go(base)},{timeout:6000,enableHighAccuracy:true})}else go(base);
+}
+$("sms").onclick=function(){msg(function(n,t){location.href="sms:+55"+n+"?body="+t})};
+$("wa").onclick=function(){msg(function(n,t){location.href="https://wa.me/55"+n+"?text="+t})};
+run();show("home");
+try{if("serviceWorker" in navigator)navigator.serviceWorker.register("sw.js")}catch(e){}
+</script>
+</body>
+</html>
